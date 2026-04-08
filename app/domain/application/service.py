@@ -19,14 +19,7 @@ class ApplicationService(BaseService[Application, ApplicationCreate, Application
     entity_name = "Application"
     repository_class = ApplicationRepository
 
-    @override
-    def create_entity(self, payload: ApplicationCreate):
-        data = payload.model_dump()
-        data["api_key"] = secrets.token_hex(32)
-        entity = Application(**data)
-        return self.repository.create(entity)
-
-
+    
 def get_application_service(session: SessionDep) -> ApplicationService:
     return ApplicationService(session)
 
