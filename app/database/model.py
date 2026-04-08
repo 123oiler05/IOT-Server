@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 from app.shared.base_domain.model import BaseTable
 from datetime import datetime
@@ -54,6 +54,18 @@ class SensitiveData(BaseTable, table=True):
         back_populates="sensitive_data",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+
+    def __init__(self, **data: Any):
+        password = data.pop("password", None)
+        if password is not None:
+            data["password_hash"] = get_password_hash(password)
+        super().__init__(**data)
+
+    def sqlmodel_update(self, obj: dict[str, Any], *, update: dict[str, Any] | None = None) -> None:
+        password = obj.pop("password", None)
+        super().sqlmodel_update(obj, update=update)
+        if password is not None:
+            self.password = password
 
     @property
     def password(self) -> str:
