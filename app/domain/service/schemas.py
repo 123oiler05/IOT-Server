@@ -6,7 +6,7 @@ from app.shared.base_domain.schemas import BaseSchemaResponse
 class ServiceCreate(BaseModel):
     name: str
     description: str | None = None
-    administrator_id: UUID
+    created_by_id: UUID
 
 
 class ServiceUpdate(BaseModel):
@@ -18,5 +18,5 @@ class ServiceUpdate(BaseModel):
 class ServiceResponse(BaseSchemaResponse):
     name: str
     description: str | None
-    administrator_id: UUID
+    created_by_id: UUID
     is_active: bool

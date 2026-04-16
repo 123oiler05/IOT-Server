@@ -90,8 +90,12 @@ class Administrator(PersonalData, table=True):
         back_populates="administrator",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
-    manager_services: list["Service"] = Relationship(
-        back_populates="registered_by",
+    created_services: list["Service"] = Relationship(
+        back_populates="created_by",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+    service_administrators: list["ServiceAdministrator"] = Relationship(
+        back_populates="administrator",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     registered_applications: list["Application"] = Relationship(
@@ -129,11 +133,15 @@ class Service(BaseTable, table=True):
 
     name: str = Field(unique=True)
     description: str | None = None
-    administrator_id: UUID = Field(foreign_key="administrator.id")
+    created_by_id: UUID = Field(foreign_key="administrator.id")
     is_active: bool = Field(default=True)
 
-    registered_by: Administrator = Relationship(
-        back_populates="manager_services",
+    created_by: Administrator = Relationship(
+        back_populates="created_services",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+    service_administrators: list["ServiceAdministrator"] = Relationship(
+        back_populates="service",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     manager_services: list["ManagerService"] = Relationship(
@@ -176,6 +184,22 @@ class ManagerService(BaseTable, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 
+class ServiceAdministrator(BaseTable, table=True):
+    __tablename__ = "service_administrator"  # pyright: ignore[reportAssignmentType]
+    __table_args__ = (UniqueConstraint("service_id", "administrator_id"),)
+    service_id: UUID = Field(foreign_key="service.id")
+    administrator_id: UUID = Field(foreign_key="administrator.id")
+
+    service: Service = Relationship(
+        back_populates="service_administrators",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+    administrator: Administrator = Relationship(
+        back_populates="service_administrators",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
+
 def get_api_key():
     return secrets.token_hex(32)
 
@@ -216,7 +240,8 @@ class ApplicationService(BaseTable, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 
-
+def get_encryption_key():
+    return secrets.token_hex(32)
 class Device(BaseTable, table=True):
     __tablename__ = "device"  # pyright: ignore[reportAssignmentType]
 
@@ -226,6 +251,7 @@ class Device(BaseTable, table=True):
     serial_number: str | None = Field(default=None, unique=True)
     ip: str | None = None
     mac: str | None = Field(default=None, unique=True)
+    encryption_key: str = Field(default_factory=get_encryption_key)
     is_active: bool = Field(default=True)
 
     device_services: list["DeviceService"] = Relationship(

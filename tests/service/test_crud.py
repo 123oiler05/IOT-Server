@@ -11,14 +11,14 @@ class TestCreateService:
             json={
                 "name": "Monitoreo de Temperatura",
                 "description": "Sensores de temperatura",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == "Monitoreo de Temperatura"
         assert data["description"] == "Sensores de temperatura"
-        assert data["administrator_id"] == str(master_admin_account["id"])
+        assert data["created_by_id"] == str(master_admin_account["id"])
         assert data["is_active"] is True
         assert "id" in data
         assert "created_at" in data
@@ -29,7 +29,7 @@ class TestCreateService:
             "/api/v1/services",
             json={
                 "name": "Servicio sin descripcion",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         assert response.status_code == 201
@@ -40,12 +40,12 @@ class TestCreateService:
             "/api/v1/services",
             json={
                 "description": "Falta el name",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         assert response.status_code == 422
 
-    def test_create_service_without_administrator_fails(self, client):
+    def test_create_service_without_creator_fails(self, client):
         response = client.post(
             "/api/v1/services",
             json={"name": "Sin admin"},
@@ -56,11 +56,11 @@ class TestCreateService:
         admin_id = str(master_admin_account["id"])
         client.post(
             "/api/v1/services",
-            json={"name": "Duplicado", "administrator_id": admin_id},
+            json={"name": "Duplicado", "created_by_id": admin_id},
         )
         response = client.post(
             "/api/v1/services",
-            json={"name": "Duplicado", "administrator_id": admin_id},
+            json={"name": "Duplicado", "created_by_id": admin_id},
         )
         assert response.status_code == 500
 
@@ -79,11 +79,11 @@ class TestListServices:
         admin_id = str(master_admin_account["id"])
         client.post(
             "/api/v1/services",
-            json={"name": "Servicio 1", "administrator_id": admin_id},
+            json={"name": "Servicio 1", "created_by_id": admin_id},
         )
         client.post(
             "/api/v1/services",
-            json={"name": "Servicio 2", "administrator_id": admin_id},
+            json={"name": "Servicio 2", "created_by_id": admin_id},
         )
         response = client.get("/api/v1/services")
         assert response.status_code == 200
@@ -96,7 +96,7 @@ class TestListServices:
         for i in range(5):
             client.post(
                 "/api/v1/services",
-                json={"name": f"Servicio {i}", "administrator_id": admin_id},
+                json={"name": f"Servicio {i}", "created_by_id": admin_id},
             )
         response = client.get("/api/v1/services?offset=0&limit=2")
         data = response.json()
@@ -112,7 +112,7 @@ class TestGetService:
             "/api/v1/services",
             json={
                 "name": "Mi Servicio",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         service_id = create_response.json()["id"]
@@ -134,7 +134,7 @@ class TestUpdateService:
             "/api/v1/services",
             json={
                 "name": "Nombre Original",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         service_id = create_response.json()["id"]
@@ -150,7 +150,7 @@ class TestUpdateService:
             "/api/v1/services",
             json={
                 "name": "Servicio Desc",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         service_id = create_response.json()["id"]
@@ -166,7 +166,7 @@ class TestUpdateService:
             "/api/v1/services",
             json={
                 "name": "Servicio Activo",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         service_id = create_response.json()["id"]
@@ -194,7 +194,7 @@ class TestDeleteService:
             "/api/v1/services",
             json={
                 "name": "Para borrar",
-                "administrator_id": str(master_admin_account["id"]),
+                "created_by_id": str(master_admin_account["id"]),
             },
         )
         service_id = create_response.json()["id"]
